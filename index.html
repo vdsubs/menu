@@ -6,69 +6,77 @@
   <title>Каталог напитков</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-neutral-900 text-white font-sans">
+<body class="bg-neutral-100 text-neutral-900 font-sans">
   <div class="max-w-5xl mx-auto p-6">
     <!-- Заголовок -->
-    <h1 class="text-3xl font-bold text-center mb-8 text-white">Каталоги напитков</h1>
+    <h1 class="text-3xl font-bold text-center mb-8 text-neutral-800">Каталоги напитков</h1>
 
     <!-- Каталоги -->
     <div class="grid md:grid-cols-3 gap-6">
-      <!-- Каталог 1 -->
-      <div onclick="openCatalog(1)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
-        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 1</div>
+      <div onclick="openCatalog(1)" class="bg-white/40 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-48 bg-neutral-200/50 flex items-center justify-center text-neutral-600">Афиша 1</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2 text-white">Коктейли Premium</h2>
-          <p class="text-sm text-white/80">Элитная подборка напитков</p>
+          <h2 class="text-xl font-semibold mb-2">Коктейли Premium</h2>
+          <p class="text-sm text-neutral-600">Элитная подборка напитков</p>
         </div>
       </div>
-
-      <!-- Каталог 2 -->
-      <div onclick="openCatalog(2)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
-        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 2</div>
+      <div onclick="openCatalog(2)" class="bg-white/40 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-48 bg-neutral-200/50 flex items-center justify-center text-neutral-600">Афиша 2</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2 text-white">Классические коктейли</h2>
-          <p class="text-sm text-white/80">Любимые напитки на все случаи</p>
+          <h2 class="text-xl font-semibold mb-2">Классические коктейли</h2>
+          <p class="text-sm text-neutral-600">Любимые напитки на все случаи</p>
         </div>
       </div>
-
-      <!-- Каталог 3 -->
-      <div onclick="openCatalog(3)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
-        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 3</div>
+      <div onclick="openCatalog(3)" class="bg-white/40 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-48 bg-neutral-200/50 flex items-center justify-center text-neutral-600">Афиша 3</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2 text-white">Авторские коктейли</h2>
-          <p class="text-sm text-white/80">Уникальные сочетания</p>
+          <h2 class="text-xl font-semibold mb-2">Авторские коктейли</h2>
+          <p class="text-sm text-neutral-600">Уникальные сочетания</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Затемнение -->
-  <div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-50 hidden"></div>
+  <div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-30 hidden"></div>
 
   <!-- Bottom sheet -->
-  <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white/20 backdrop-blur-lg rounded-t-2xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
+  <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white/50 backdrop-blur-lg rounded-t-3xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
     <!-- Ручка -->
     <div class="w-12 h-1.5 bg-neutral-400/50 rounded-full mx-auto my-3"></div>
 
     <!-- Заголовок и кнопка закрытия -->
     <div class="flex items-center justify-between px-6">
-      <h2 id="catalogTitle" class="text-2xl font-bold text-white"></h2>
-      <button onclick="closeCatalog()" class="text-white/80 hover:text-white text-xl">✕</button>
+      <h2 id="catalogTitle" class="text-2xl font-bold text-neutral-800"></h2>
+      <button onclick="closeCatalog()" class="text-neutral-600 hover:text-neutral-900 text-xl">✕</button>
     </div>
 
     <!-- Карусель -->
-    <div id="catalogItems" class="flex space-x-4 overflow-x-auto snap-x snap-mandatory px-6 py-4">
-      <!-- Карточки напитков будут подставлены -->
+    <div class="relative">
+      <div id="catalogItems" class="flex space-x-6 overflow-x-auto snap-x snap-mandatory px-6 py-4 scrollbar-hide"></div>
+
+      <!-- Точки-индикаторы -->
+      <div id="dots" class="flex justify-center mt-2 mb-4 space-x-2"></div>
     </div>
   </div>
 
   <script>
     const placeholderImg = "https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg";
 
+    // Создаем случайные метрики
+    function randomMetric() {
+      return {
+        price: (Math.random()*15 + 5).toFixed(2) + ' $',
+        abv: (Math.random()*15 + 5).toFixed(0) + '%',
+        volume: (Math.random()*150 + 150).toFixed(0) + ' мл',
+        rating: (Math.random()*2 + 3).toFixed(1) + ' ⭐'
+      }
+    }
+
     const catalogs = {
-      1: { title: "Коктейли Premium", items: Array.from({length:12}, (_,i)=>({ name: `Premium Cocktail ${i+1}`, desc: "Изысканный вкус", img: placeholderImg })) },
-      2: { title: "Классические коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Classic Cocktail ${i+1}`, desc: "Любимые напитки", img: placeholderImg })) },
-      3: { title: "Авторские коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Signature Cocktail ${i+1}`, desc: "Уникальные сочетания", img: placeholderImg })) }
+      1: { title: "Коктейли Premium", items: Array.from({length:12}, (_,i)=>({ name: `Premium Cocktail ${i+1}`, desc: "Изысканный вкус", img: placeholderImg, ...randomMetric() })) },
+      2: { title: "Классические коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Classic Cocktail ${i+1}`, desc: "Любимые напитки", img: placeholderImg, ...randomMetric() })) },
+      3: { title: "Авторские коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Signature Cocktail ${i+1}`, desc: "Уникальные сочетания", img: placeholderImg, ...randomMetric() })) }
     };
 
     function openCatalog(id) {
@@ -76,20 +84,38 @@
       document.getElementById("catalogTitle").textContent = catalog.title;
       const container = document.getElementById("catalogItems");
       container.innerHTML = "";
-      catalog.items.forEach(item => {
+      const dotsContainer = document.getElementById("dots");
+      dotsContainer.innerHTML = "";
+
+      catalog.items.forEach((item,index) => {
         container.innerHTML += `
-          <div class='flex-none snap-center bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden w-72 hover:shadow-2xl transition'>
-            <img src='${item.img}' class='w-full h-40 object-cover'/>
+          <div class='flex-none snap-center bg-white/40 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden w-64 hover:shadow-2xl transition'>
+            <img src='${item.img}' class='w-full h-80 object-cover'/>
             <div class='p-4'>
-              <h3 class='text-lg font-semibold mb-1 text-white'>${item.name}</h3>
-              <p class='text-sm text-white/80'>${item.desc}</p>
+              <h3 class='text-lg font-semibold mb-1 text-neutral-800'>${item.name}</h3>
+              <p class='text-sm text-neutral-600 mb-1'>${item.desc}</p>
+              <p class='text-sm text-neutral-500'>${item.price} • ${item.abv} • ${item.volume} • ${item.rating}</p>
             </div>
           </div>`;
+
+        dotsContainer.innerHTML += `<div class='w-3 h-3 bg-neutral-400 rounded-full opacity-50'></div>`;
       });
+
       document.getElementById("overlay").classList.remove("hidden");
       const sheet = document.getElementById("sheet");
       sheet.classList.remove("hidden", "translate-y-full");
       sheet.classList.add("translate-y-0");
+
+      // Подсветка активной точки
+      const cards = container.children;
+      const dots = dotsContainer.children;
+      container.addEventListener('scroll', () => {
+        const scrollLeft = container.scrollLeft;
+        const cardWidth = cards[0].offsetWidth + 24; // ширина + margin
+        const index = Math.round(scrollLeft / cardWidth);
+        Array.from(dots).forEach((dot,i)=>dot.classList.toggle('opacity-100', i===index));
+      });
+      Array.from(dots).forEach((dot,i)=>dot.classList.toggle('opacity-100', i===0));
     }
 
     function closeCatalog() {
