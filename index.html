@@ -6,54 +6,54 @@
   <title>Каталог напитков</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-neutral-100 text-neutral-900 font-sans">
+<body class="bg-neutral-900 text-white font-sans">
   <div class="max-w-5xl mx-auto p-6">
     <!-- Заголовок -->
-    <h1 class="text-3xl font-bold text-center mb-8 text-neutral-800">Каталоги напитков</h1>
+    <h1 class="text-3xl font-bold text-center mb-8 text-white">Каталоги напитков</h1>
 
     <!-- Каталоги -->
     <div class="grid md:grid-cols-3 gap-6">
       <!-- Каталог 1 -->
-      <div onclick="openCatalog(1)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
-        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 1</div>
+      <div onclick="openCatalog(1)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 1</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2">Коктейли Premium</h2>
-          <p class="text-sm text-neutral-600">Элитная подборка напитков</p>
+          <h2 class="text-xl font-semibold mb-2 text-white">Коктейли Premium</h2>
+          <p class="text-sm text-white/80">Элитная подборка напитков</p>
         </div>
       </div>
 
       <!-- Каталог 2 -->
-      <div onclick="openCatalog(2)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
-        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 2</div>
+      <div onclick="openCatalog(2)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 2</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2">Классические коктейли</h2>
-          <p class="text-sm text-neutral-600">Любимые напитки на все случаи</p>
+          <h2 class="text-xl font-semibold mb-2 text-white">Классические коктейли</h2>
+          <p class="text-sm text-white/80">Любимые напитки на все случаи</p>
         </div>
       </div>
 
       <!-- Каталог 3 -->
-      <div onclick="openCatalog(3)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
-        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 3</div>
+      <div onclick="openCatalog(3)" class="bg-white/20 backdrop-blur-md shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-2xl transition">
+        <div class="h-40 bg-neutral-800/50 flex items-center justify-center text-neutral-300">Афиша 3</div>
         <div class="p-4">
-          <h2 class="text-xl font-semibold mb-2">Авторские коктейли</h2>
-          <p class="text-sm text-neutral-600">Уникальные сочетания</p>
+          <h2 class="text-xl font-semibold mb-2 text-white">Авторские коктейли</h2>
+          <p class="text-sm text-white/80">Уникальные сочетания</p>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Затемнение -->
-  <div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-60 hidden"></div>
+  <div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-50 hidden"></div>
 
   <!-- Bottom sheet -->
-  <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
+  <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white/20 backdrop-blur-lg rounded-t-2xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
     <!-- Ручка -->
-    <div class="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto my-3"></div>
+    <div class="w-12 h-1.5 bg-neutral-400/50 rounded-full mx-auto my-3"></div>
 
     <!-- Заголовок и кнопка закрытия -->
     <div class="flex items-center justify-between px-6">
-      <h2 id="catalogTitle" class="text-2xl font-bold"></h2>
-      <button onclick="closeCatalog()" class="text-neutral-600 hover:text-neutral-900 text-xl">✕</button>
+      <h2 id="catalogTitle" class="text-2xl font-bold text-white"></h2>
+      <button onclick="closeCatalog()" class="text-white/80 hover:text-white text-xl">✕</button>
     </div>
 
     <!-- Карусель -->
@@ -63,52 +63,12 @@
   </div>
 
   <script>
+    const placeholderImg = "https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg";
+
     const catalogs = {
-      1: {
-        title: "Коктейли Premium",
-        items: [
-          { name: "Martini Deluxe", desc: "Изысканный вкус", img: "https://via.placeholder.com/300x200" },
-          { name: "Gold Negroni", desc: "Горько-сладкий баланс", img: "https://via.placeholder.com/300x200" },
-          { name: "Velvet Sour", desc: "Нежная кислинка", img: "https://via.placeholder.com/300x200" },
-          { name: "Royal Spritz", desc: "Игристое и яркое", img: "https://via.placeholder.com/300x200" },
-          { name: "Black Diamond", desc: "Тёмный премиум вкус", img: "https://via.placeholder.com/300x200" },
-          { name: "Citrus Velvet", desc: "Цитрусовая свежесть", img: "https://via.placeholder.com/300x200" },
-          { name: "Ruby Fizz", desc: "Игривый красный оттенок", img: "https://via.placeholder.com/300x200" },
-          { name: "Golden Sour", desc: "Освежающая кислинка", img: "https://via.placeholder.com/300x200" },
-          { name: "Velour Martini", desc: "Шёлковая текстура", img: "https://via.placeholder.com/300x200" },
-          { name: "Lux Negroni", desc: "Роскошный баланс", img: "https://via.placeholder.com/300x200" },
-        ]
-      },
-      2: {
-        title: "Классические коктейли",
-        items: [
-          { name: "Mojito", desc: "Свежесть лайма и мяты", img: "https://via.placeholder.com/300x200" },
-          { name: "Old Fashioned", desc: "Классика виски", img: "https://via.placeholder.com/300x200" },
-          { name: "Margarita", desc: "Легендарный цитрусовый вкус", img: "https://via.placeholder.com/300x200" },
-          { name: "Daiquiri", desc: "Лёгкий ромовый классик", img: "https://via.placeholder.com/300x200" },
-          { name: "Whiskey Sour", desc: "Сладко-кислый баланс", img: "https://via.placeholder.com/300x200" },
-          { name: "Manhattan", desc: "Глубокий вкус виски", img: "https://via.placeholder.com/300x200" },
-          { name: "Cosmopolitan", desc: "Яркий ягодный вкус", img: "https://via.placeholder.com/300x200" },
-          { name: "Bloody Mary", desc: "Томатная классика", img: "https://via.placeholder.com/300x200" },
-          { name: "Gin Tonic", desc: "Простота и свежесть", img: "https://via.placeholder.com/300x200" },
-          { name: "Pina Colada", desc: "Тропический вкус", img: "https://via.placeholder.com/300x200" },
-        ]
-      },
-      3: {
-        title: "Авторские коктейли",
-        items: [
-          { name: "Peach Blossom", desc: "Персик и жасмин", img: "https://via.placeholder.com/300x200" },
-          { name: "Coffee Passion", desc: "Кофе и маракуйя", img: "https://via.placeholder.com/300x200" },
-          { name: "Pumpkin Clear", desc: "Осенний эксперимент", img: "https://via.placeholder.com/300x200" },
-          { name: "Berry Smoke", desc: "Ягоды и дым", img: "https://via.placeholder.com/300x200" },
-          { name: "Herbal Breeze", desc: "Травяная свежесть", img: "https://via.placeholder.com/300x200" },
-          { name: "Citrus Harmony", desc: "Баланс цитрусов", img: "https://via.placeholder.com/300x200" },
-          { name: "Spicy Velvet", desc: "Пряная мягкость", img: "https://via.placeholder.com/300x200" },
-          { name: "Jade Cooler", desc: "Мятно-зелёный вкус", img: "https://via.placeholder.com/300x200" },
-          { name: "Amber Sunset", desc: "Тёплый фруктовый акцент", img: "https://via.placeholder.com/300x200" },
-          { name: "Frozen Orchid", desc: "Холодная нежность", img: "https://via.placeholder.com/300x200" },
-        ]
-      }
+      1: { title: "Коктейли Premium", items: Array.from({length:12}, (_,i)=>({ name: `Premium Cocktail ${i+1}`, desc: "Изысканный вкус", img: placeholderImg })) },
+      2: { title: "Классические коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Classic Cocktail ${i+1}`, desc: "Любимые напитки", img: placeholderImg })) },
+      3: { title: "Авторские коктейли", items: Array.from({length:12}, (_,i)=>({ name: `Signature Cocktail ${i+1}`, desc: "Уникальные сочетания", img: placeholderImg })) }
     };
 
     function openCatalog(id) {
@@ -118,11 +78,11 @@
       container.innerHTML = "";
       catalog.items.forEach(item => {
         container.innerHTML += `
-          <div class='flex-none snap-center bg-neutral-50 rounded-xl shadow-md overflow-hidden w-72 hover:shadow-lg transition'>
-            <img src="${item.img}" class="w-full h-40 object-cover"/>
-            <div class="p-4">
-              <h3 class="text-lg font-semibold mb-1">${item.name}</h3>
-              <p class="text-sm text-neutral-600">${item.desc}</p>
+          <div class='flex-none snap-center bg-white/30 backdrop-blur-md rounded-xl shadow-lg overflow-hidden w-72 hover:shadow-2xl transition'>
+            <img src='${item.img}' class='w-full h-40 object-cover'/>
+            <div class='p-4'>
+              <h3 class='text-lg font-semibold mb-1 text-white'>${item.name}</h3>
+              <p class='text-sm text-white/80'>${item.desc}</p>
             </div>
           </div>`;
       });
