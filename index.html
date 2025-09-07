@@ -1,3 +1,91 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Каталог напитков</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Эффект плавного появления карточек */
+  .fade-slide {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-slide.active {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Скрытие скроллбаров */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+</style>
+</head>
+<body class="relative bg-neutral-100 text-neutral-900 font-sans">
+
+<!-- Размытый фон -->
+<div class="fixed inset-0 -z-10">
+  <img src="https://picsum.photos/1200/800?blur=30" class="w-full h-full object-cover filter blur-3xl brightness-75">
+</div>
+
+<div class="max-w-6xl mx-auto p-6">
+  <h1 class="text-4xl font-bold text-center mb-8 text-neutral-50">Каталоги напитков</h1>
+  
+  <!-- Афиши каталогов -->
+  <div class="grid md:grid-cols-3 gap-8">
+    <!-- Каталог 1 -->
+    <div onclick="openCatalog(1)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
+      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
+      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-md hover:backdrop-blur-lg p-6 transition-all">
+        <h2 class="text-2xl font-semibold text-neutral-900">Premium Cocktails</h2>
+        <p class="text-sm text-neutral-700 mt-1">Элитный тариф с уникальными коктейлями</p>
+        <ul class="text-sm text-neutral-600 mt-2">
+          <li>• Быстрая доставка</li>
+          <li>• Эксклюзивные рецепты</li>
+          <li>• Персональные рекомендации</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Каталог 2 -->
+    <div onclick="openCatalog(2)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
+      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
+      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-md hover:backdrop-blur-lg p-6 transition-all">
+        <h2 class="text-2xl font-semibold text-neutral-900">Classic Cocktails</h2>
+        <p class="text-sm text-neutral-700 mt-1">Тариф с проверенными любимыми коктейлями</p>
+        <ul class="text-sm text-neutral-600 mt-2">
+          <li>• Доступные цены</li>
+          <li>• Классические рецепты</li>
+          <li>• Подходит для любых мероприятий</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Каталог 3 -->
+    <div onclick="openCatalog(3)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
+      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
+      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-md hover:backdrop-blur-lg p-6 transition-all">
+        <h2 class="text-2xl font-semibold text-neutral-900">Signature Cocktails</h2>
+        <p class="text-sm text-neutral-700 mt-1">Авторский тариф с уникальными сочетаниями</p>
+        <ul class="text-sm text-neutral-600 mt-2">
+          <li>• Редкие ингредиенты</li>
+          <li>• Эксклюзивные бокалы</li>
+          <li>• Идеально для презентаций</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Затемнение -->
+<div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-30 hidden"></div>
+
 <!-- Slide-in Bottom Sheet -->
 <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white/20 backdrop-blur-lg rounded-t-3xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
   <div class="w-12 h-1.5 bg-neutral-400/50 rounded-full mx-auto my-3"></div>
@@ -27,9 +115,9 @@ function randomMetric() {
 }
 
 const catalogs = {
-  1: { title: "Premium Cocktails", items: Array.from({length:12}, (_,i)=>({ name: Premium Cocktail ${i+1}, desc: "Изысканный вкус", img: placeholderImg, ...randomMetric() })) },
-  2: { title: "Classic Cocktails", items: Array.from({length:12}, (_,i)=>({ name: Classic Cocktail ${i+1}, desc: "Любимые напитки", img: placeholderImg, ...randomMetric() })) },
-  3: { title: "Signature Cocktails", items: Array.from({length:12}, (_,i)=>({ name: Signature Cocktail ${i+1}, desc: "Уникальные сочетания", img: placeholderImg, ...randomMetric() })) }
+  1: { title: "Premium Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Premium Cocktail ${i+1}`, desc: "Изысканный вкус", img: placeholderImg, ...randomMetric() })) },
+  2: { title: "Classic Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Classic Cocktail ${i+1}`, desc: "Любимые напитки", img: placeholderImg, ...randomMetric() })) },
+  3: { title: "Signature Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Signature Cocktail ${i+1}`, desc: "Уникальные сочетания", img: placeholderImg, ...randomMetric() })) }
 };
 
 function openCatalog(id) {
