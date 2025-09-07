@@ -1,76 +1,143 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Выбор тарифа</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Каталог напитков</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <div class="container">
-        <!-- Comfort -->
-        <div class="card">
-            <h2>COMFORT</h2>
-            <p class="price">900 ₽ / напиток</p>
-            <div class="buttons">
-                <button class="btn black">Меню</button>
-                <button class="btn black">Привилегии</button>
-            </div>
-            <p class="min-order">мин заказ 120 шт</p>
-            <ul class="advantages">
-                <li>Выбор до 4 напитков (1 из них б/а)</li>
-                <li>Персонал (4 часа работы)</li>
-                <li>Доставка в пределах МКАД</li>
-                <li>Выбор дресс-кода (7 образов)</li>
-            </ul>
-        </div>
+<body class="bg-neutral-100 text-neutral-900 font-sans">
+  <div class="max-w-5xl mx-auto p-6">
+    <!-- Заголовок -->
+    <h1 class="text-3xl font-bold text-center mb-8 text-neutral-800">Каталоги напитков</h1>
 
-        <!-- Premium -->
-        <div class="card">
-            <h2>PREMIUM</h2>
-            <p class="price">1 150 ₽ / напиток</p>
-            <div class="buttons">
-                <button class="btn black">Меню</button>
-                <button class="btn black">Привилегии</button>
-            </div>
-            <p class="min-order">мин заказ 170 шт</p>
-            <ul class="advantages">
-                <li>Выбор до 5 напитков (1 из них б/а)</li>
-                <li>Премиальный алкоголь</li>
-                <li>Персонал (6 часов работы)</li>
-                <li>Доставка в пределах МКАД</li>
-                <li>Жидкий азот</li>
-                <li>На все барные стойки — 20 %</li>
-                <li>Скидки на все спец. подачи — 20 %</li>
-                <li>Морозилки для льда</li>
-                <li>Выбор дресс-кода (7 образов)</li>
-            </ul>
+    <!-- Каталоги -->
+    <div class="grid md:grid-cols-3 gap-6">
+      <!-- Каталог 1 -->
+      <div onclick="openCatalog(1)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
+        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 1</div>
+        <div class="p-4">
+          <h2 class="text-xl font-semibold mb-2">Коктейли Premium</h2>
+          <p class="text-sm text-neutral-600">Элитная подборка напитков</p>
         </div>
+      </div>
 
-        <!-- Premium Plus -->
-        <div class="card">
-            <h2>PREMIUM PLUS</h2>
-            <p class="price">1 250 ₽ / напиток</p>
-            <div class="buttons">
-                <button class="btn black large">Меню</button>
-            </div>
-            <p class="min-order">мин заказ 200 шт</p>
-            <ul class="advantages">
-                <li>Выбор до 6 напитков (1 из них б/а)</li>
-                <li>Премиальный алкоголь</li>
-                <li>Персонал (8 часов работы)</li>
-                <li>Доставка по Мск и за МКАД до 30 км</li>
-                <li>Разработка тематического меню</li>
-                <li>Дегустация за наш счёт</li>
-                <li>Жидкий азот</li>
-                <li>BUBBLE BLASTER</li>
-                <li>Минеральная вода</li>
-                <li>Морозилки для льда</li>
-                <li>Барная стойка за наш счёт</li>
-                <li>Скидки на все спец. подачи — 20 %</li>
-                <li>Выбор дресс-кода (7 образов)</li>
-            </ul>
+      <!-- Каталог 2 -->
+      <div onclick="openCatalog(2)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
+        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 2</div>
+        <div class="p-4">
+          <h2 class="text-xl font-semibold mb-2">Классические коктейли</h2>
+          <p class="text-sm text-neutral-600">Любимые напитки на все случаи</p>
         </div>
+      </div>
+
+      <!-- Каталог 3 -->
+      <div onclick="openCatalog(3)" class="bg-white shadow-lg rounded-2xl cursor-pointer overflow-hidden hover:shadow-xl transition">
+        <div class="h-40 bg-neutral-300 flex items-center justify-center text-neutral-600">Афиша 3</div>
+        <div class="p-4">
+          <h2 class="text-xl font-semibold mb-2">Авторские коктейли</h2>
+          <p class="text-sm text-neutral-600">Уникальные сочетания</p>
+        </div>
+      </div>
     </div>
+  </div>
+
+  <!-- Затемнение -->
+  <div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-60 hidden"></div>
+
+  <!-- Bottom sheet -->
+  <div id="sheet" class="fixed inset-x-0 bottom-0 bg-white rounded-t-2xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
+    <!-- Ручка -->
+    <div class="w-12 h-1.5 bg-neutral-300 rounded-full mx-auto my-3"></div>
+
+    <!-- Заголовок и кнопка закрытия -->
+    <div class="flex items-center justify-between px-6">
+      <h2 id="catalogTitle" class="text-2xl font-bold"></h2>
+      <button onclick="closeCatalog()" class="text-neutral-600 hover:text-neutral-900 text-xl">✕</button>
+    </div>
+
+    <!-- Карусель -->
+    <div id="catalogItems" class="flex space-x-4 overflow-x-auto snap-x snap-mandatory px-6 py-4">
+      <!-- Карточки напитков будут подставлены -->
+    </div>
+  </div>
+
+  <script>
+    const catalogs = {
+      1: {
+        title: "Коктейли Premium",
+        items: [
+          { name: "Martini Deluxe", desc: "Изысканный вкус", img: "https://via.placeholder.com/300x200" },
+          { name: "Gold Negroni", desc: "Горько-сладкий баланс", img: "https://via.placeholder.com/300x200" },
+          { name: "Velvet Sour", desc: "Нежная кислинка", img: "https://via.placeholder.com/300x200" },
+          { name: "Royal Spritz", desc: "Игристое и яркое", img: "https://via.placeholder.com/300x200" },
+          { name: "Black Diamond", desc: "Тёмный премиум вкус", img: "https://via.placeholder.com/300x200" },
+          { name: "Citrus Velvet", desc: "Цитрусовая свежесть", img: "https://via.placeholder.com/300x200" },
+          { name: "Ruby Fizz", desc: "Игривый красный оттенок", img: "https://via.placeholder.com/300x200" },
+          { name: "Golden Sour", desc: "Освежающая кислинка", img: "https://via.placeholder.com/300x200" },
+          { name: "Velour Martini", desc: "Шёлковая текстура", img: "https://via.placeholder.com/300x200" },
+          { name: "Lux Negroni", desc: "Роскошный баланс", img: "https://via.placeholder.com/300x200" },
+        ]
+      },
+      2: {
+        title: "Классические коктейли",
+        items: [
+          { name: "Mojito", desc: "Свежесть лайма и мяты", img: "https://via.placeholder.com/300x200" },
+          { name: "Old Fashioned", desc: "Классика виски", img: "https://via.placeholder.com/300x200" },
+          { name: "Margarita", desc: "Легендарный цитрусовый вкус", img: "https://via.placeholder.com/300x200" },
+          { name: "Daiquiri", desc: "Лёгкий ромовый классик", img: "https://via.placeholder.com/300x200" },
+          { name: "Whiskey Sour", desc: "Сладко-кислый баланс", img: "https://via.placeholder.com/300x200" },
+          { name: "Manhattan", desc: "Глубокий вкус виски", img: "https://via.placeholder.com/300x200" },
+          { name: "Cosmopolitan", desc: "Яркий ягодный вкус", img: "https://via.placeholder.com/300x200" },
+          { name: "Bloody Mary", desc: "Томатная классика", img: "https://via.placeholder.com/300x200" },
+          { name: "Gin Tonic", desc: "Простота и свежесть", img: "https://via.placeholder.com/300x200" },
+          { name: "Pina Colada", desc: "Тропический вкус", img: "https://via.placeholder.com/300x200" },
+        ]
+      },
+      3: {
+        title: "Авторские коктейли",
+        items: [
+          { name: "Peach Blossom", desc: "Персик и жасмин", img: "https://via.placeholder.com/300x200" },
+          { name: "Coffee Passion", desc: "Кофе и маракуйя", img: "https://via.placeholder.com/300x200" },
+          { name: "Pumpkin Clear", desc: "Осенний эксперимент", img: "https://via.placeholder.com/300x200" },
+          { name: "Berry Smoke", desc: "Ягоды и дым", img: "https://via.placeholder.com/300x200" },
+          { name: "Herbal Breeze", desc: "Травяная свежесть", img: "https://via.placeholder.com/300x200" },
+          { name: "Citrus Harmony", desc: "Баланс цитрусов", img: "https://via.placeholder.com/300x200" },
+          { name: "Spicy Velvet", desc: "Пряная мягкость", img: "https://via.placeholder.com/300x200" },
+          { name: "Jade Cooler", desc: "Мятно-зелёный вкус", img: "https://via.placeholder.com/300x200" },
+          { name: "Amber Sunset", desc: "Тёплый фруктовый акцент", img: "https://via.placeholder.com/300x200" },
+          { name: "Frozen Orchid", desc: "Холодная нежность", img: "https://via.placeholder.com/300x200" },
+        ]
+      }
+    };
+
+    function openCatalog(id) {
+      const catalog = catalogs[id];
+      document.getElementById("catalogTitle").textContent = catalog.title;
+      const container = document.getElementById("catalogItems");
+      container.innerHTML = "";
+      catalog.items.forEach(item => {
+        container.innerHTML += `
+          <div class='flex-none snap-center bg-neutral-50 rounded-xl shadow-md overflow-hidden w-72 hover:shadow-lg transition'>
+            <img src="${item.img}" class="w-full h-40 object-cover"/>
+            <div class="p-4">
+              <h3 class="text-lg font-semibold mb-1">${item.name}</h3>
+              <p class="text-sm text-neutral-600">${item.desc}</p>
+            </div>
+          </div>`;
+      });
+      document.getElementById("overlay").classList.remove("hidden");
+      const sheet = document.getElementById("sheet");
+      sheet.classList.remove("hidden", "translate-y-full");
+      sheet.classList.add("translate-y-0");
+    }
+
+    function closeCatalog() {
+      document.getElementById("overlay").classList.add("hidden");
+      const sheet = document.getElementById("sheet");
+      sheet.classList.add("translate-y-full");
+      setTimeout(() => sheet.classList.add("hidden"), 300);
+    }
+  </script>
 </body>
 </html>
