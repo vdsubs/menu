@@ -1,179 +1,349 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Каталог напитков</title>
-<script src="https://cdn.tailwindcss.com"></script>
-<style>
-  /* Эффект плавного появления карточек */
-  .fade-slide {
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.5s ease, transform 0.5s ease;
-  }
-  .fade-slide.active {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Каталоги напитков — MVP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{
+      --poster-height: 30rem; /* единый размер афиши (используется и для spacer) */
+      --poster-max-width: 360px;
+    }
 
-  /* Скрытие скроллбаров */
-  .scrollbar-hide::-webkit-scrollbar {
-    display: none;
-  }
-  .scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
+    body{
+      margin:0;
+      padding:0;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: url("https://res.cloudinary.com/glide/image/fetch/f_auto,w_675,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/YHvEGQ7gKxwfedZm9Io8.png")
+                  repeat-y center top fixed;
+      background-size: 100% auto;
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+      color:#111;
+    }
 
-  /* Матовое стекло на фоне */
-  .glass-background {
-    position: fixed;
-    inset: 0;
-    z-index: -10;
-    background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(200,230,255,0.1), rgba(255,220,200,0.1));
-    backdrop-filter: blur(40px) saturate(150%);
-    animation: hueShift 20s infinite linear;
-  }
+    main{ max-width:1200px; margin:0 auto; padding:0 16px; }
 
-  @keyframes hueShift {
-    0% { filter: hue-rotate(0deg); }
-    50% { filter: hue-rotate(180deg); }
-    100% { filter: hue-rotate(360deg); }
-  }
-</style>
+    /* spacer между заголовком и первой строкой каталога (по требованию) */
+    .top-spacer{ height: var(--poster-height); width:100%; pointer-events:none; }
+
+    h1{ text-align:center; margin:28px 0 0; font-size:32px; font-weight:700; }
+
+    /* Сетка каталогов: максимум 2 в ряд (>=640px), центрирование */
+    .catalog-grid{ display:grid; grid-template-columns:1fr; gap:1.25rem; justify-items:center; margin: 1.25rem auto; }
+    @media(min-width:640px){ .catalog-grid{ grid-template-columns: repeat(2, minmax(320px,1fr)); } }
+    .catalog-grid > .only-last{ grid-column: 1 / -1; justify-self:center; }
+
+    /* Афиша (вертикальная, вытянутая) */
+    .catalog-card{
+      width:100%;
+      max-width: var(--poster-max-width);
+      height: var(--poster-height);
+      border-radius: 12px;
+      overflow:hidden;
+      position:relative;
+      box-shadow: 0 14px 40px rgba(2,6,23,0.12);
+      transition: transform .28s ease, box-shadow .28s ease;
+      cursor:pointer;
+      background:#fff;
+    }
+    .catalog-card:hover{ transform: translateY(-6px); box-shadow:0 22px 48px rgba(2,6,23,0.18); }
+    .catalog-card img{ width:100%; height:100%; object-fit:cover; display:block; transition:transform .32s ease, filter .32s ease; }
+    .catalog-card:hover img{ transform:scale(1.03); filter:brightness(.86); }
+
+    .catalog-footer{
+      position:absolute; left:0; right:0; bottom:0;
+      padding:12px; background: rgba(255,255,255,0.36);
+      backdrop-filter: blur(14px) saturate(115%); -webkit-backdrop-filter: blur(14px) saturate(115%);
+      transition: background .28s ease, backdrop-filter .28s ease;
+    }
+    .catalog-card:hover .catalog-footer{
+      background: rgba(255,255,255,0.64);
+      backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%);
+    }
+
+    /* overlay & sheet control via classes - robust toggling */
+    #overlay{ position:fixed; inset:0; background:rgba(0,0,0,0.36); z-index:40; display:none; }
+    #overlay.active{ display:block; }
+
+    #sheet{
+      position:fixed; left:0; right:0; bottom:0; z-index:50;
+      transform: translateY(100%);
+      transition: transform .36s cubic-bezier(.2,.9,.2,1);
+      border-top-left-radius:18px; border-top-right-radius:18px;
+      max-height:90vh; overflow:hidden;
+      pointer-events:auto;
+    }
+    #sheet.visible{ transform: translateY(0%); }
+
+    .sheet-inner{
+      height:100%;
+      display:flex; flex-direction:column;
+      background: rgba(255,255,255,0.48);
+      backdrop-filter: blur(20px) saturate(120%); -webkit-backdrop-filter: blur(20px) saturate(120%);
+      padding:12px 14px 14px;
+    }
+
+    /* drinks row aligned to bottom */
+    .drinks-row{
+      display:flex; gap:12px; overflow-x:auto; padding:8px 10px 22px;
+      scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; align-items:flex-end;
+    }
+    .drinks-row::-webkit-scrollbar{ display:none; }
+
+    /* карточка напитка — изображение занимает весь размер, стеклянная панель снизу */
+    .drink-card{
+      position:relative;
+      flex:0 0 20rem; width:20rem; height:30rem; border-radius:14px; overflow:hidden;
+      box-shadow:0 12px 32px rgba(2,6,23,0.12);
+      scroll-snap-align:center; transition:transform .28s ease, box-shadow .28s ease;
+      background:transparent;
+    }
+    .drink-card img{ width:100%; height:100%; object-fit:cover; display:block; transition: transform .36s ease, filter .36s ease; }
+    .drink-card:hover{ transform: translateY(-6px); box-shadow:0 18px 44px rgba(2,6,23,0.18); }
+    .drink-card:hover img{ transform: scale(1.04); filter: brightness(.92); }
+
+    /* стеклянная панель внизу карточки — сначала компактная; раскрывается на hover/expanded */
+    .drink-info{
+      position:absolute; left:0; right:0; bottom:0;
+      padding:12px; height:6.4rem; overflow:hidden;
+      background: rgba(255,255,255,0.30); backdrop-filter: blur(14px) saturate(120%); -webkit-backdrop-filter: blur(14px) saturate(120%);
+      transition: height .28s ease, background .28s ease, padding .28s ease;
+    }
+    .drink-info .more{ opacity:0; transform: translateY(6px); transition: opacity .28s ease, transform .28s ease; font-size:13px; color:#444; }
+    .drink-card:hover .drink-info, .drink-card.expanded .drink-info{
+      height:11.6rem; padding:14px;
+      background: rgba(255,255,255,0.56);
+    }
+    .drink-card:hover .drink-info .more, .drink-card.expanded .drink-info .more{ opacity:1; transform: translateY(0); }
+
+    .btn-round{ height:44px; width:44px; display:flex; align-items:center; justify-content:center; border-radius:999px; background:rgba(255,255,255,0.46); backdrop-filter:blur(10px); border:1px solid rgba(255,255,255,0.38); }
+
+    /* tiny helpers */
+    .hidden{ display:none; }
+  </style>
 </head>
-<body class="relative bg-neutral-100 text-neutral-900 font-sans">
+<body>
+  <main>
+    <h1>Каталоги напитков</h1>
 
-<!-- Матовое стекло с динамическим оттенком -->
-<div class="glass-background"></div>
+    <!-- spacer = высота афиши -->
+    <div class="top-spacer" aria-hidden="true"></div>
 
-<div class="max-w-6xl mx-auto p-6">
-  <h1 class="text-4xl font-bold text-center mb-8 text-white drop-shadow-lg">Каталоги напитков</h1>
-  
-  <!-- Афиши каталогов -->
-  <div class="grid md:grid-cols-3 gap-8">
-    <!-- Каталог 1 -->
-    <div onclick="openCatalog(1)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
-      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-lg hover:backdrop-blur-xl p-6 transition-all">
-        <h2 class="text-2xl font-semibold text-neutral-900">Premium Cocktails</h2>
-        <p class="text-sm text-neutral-700 mt-1">Элитный тариф с уникальными коктейлями</p>
-        <ul class="text-sm text-neutral-600 mt-2">
-          <li>• Быстрая доставка</li>
-          <li>• Эксклюзивные рецепты</li>
-          <li>• Персональные рекомендации</li>
-        </ul>
+    <!-- каталоги -->
+    <div id="catalogGrid" class="catalog-grid" aria-live="polite">
+      <!-- 7 карточек (вертикально вытянутые) -->
+      <div class="catalog-card" data-id="1" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Premium">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Premium Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Элитный тариф с уникальными коктейлями</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="2" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Classic">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Classic Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Любимые коктейли в вечной классике</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="3" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Signature">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Signature Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Авторские сочетания и редкие ингредиенты</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="4" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Exotic">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Exotic Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Экзотические вкусы и редкие ингредиенты</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="5" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Seasonal">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Seasonal Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Сезонные лимитированные коктейли</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="6" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="VIP">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">VIP Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Для избранных клиентов и мероприятий</p>
+        </div>
+      </div>
+
+      <div class="catalog-card" data-id="7" role="button" tabindex="0">
+        <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg" alt="Special">
+        <div class="catalog-footer">
+          <h3 style="margin:0;font-size:20px;font-weight:700">Special Cocktails</h3>
+          <p style="margin:6px 0 0;color:#444">Редкие и уникальные рецепты</p>
+        </div>
       </div>
     </div>
+  </main>
 
-    <!-- Каталог 2 -->
-    <div onclick="openCatalog(2)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
-      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-lg hover:backdrop-blur-xl p-6 transition-all">
-        <h2 class="text-2xl font-semibold text-neutral-900">Classic Cocktails</h2>
-        <p class="text-sm text-neutral-700 mt-1">Тариф с проверенными любимыми коктейлями</p>
-        <ul class="text-sm text-neutral-600 mt-2">
-          <li>• Доступные цены</li>
-          <li>• Классические рецепты</li>
-          <li>• Подходит для любых мероприятий</li>
-        </ul>
+  <!-- overlay + sheet (sheet присутствует в DOM, показываем по классу) -->
+  <div id="overlay" aria-hidden="true"></div>
+
+  <div id="sheet" aria-hidden="true">
+    <div class="sheet-inner" style="height:86vh;">
+      <div style="width:48px;height:6px;background:rgba(100,100,100,0.18);border-radius:999px;margin:8px auto 12px"></div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:0 8px 8px">
+        <h2 id="catalogTitle" style="font-size:20px;margin:0"></h2>
+        <button id="closeBtn" aria-label="Close" style="background:transparent;border:none;font-size:22px;cursor:pointer">✕</button>
       </div>
-    </div>
 
-    <!-- Каталог 3 -->
-    <div onclick="openCatalog(3)" class="relative cursor-pointer rounded-3xl overflow-hidden shadow-lg transition transform hover:scale-105 hover:shadow-2xl">
-      <img src="https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg" class="w-full h-96 object-cover">
-      <div class="absolute bottom-0 left-0 w-full bg-white/20 backdrop-blur-lg hover:backdrop-blur-xl p-6 transition-all">
-        <h2 class="text-2xl font-semibold text-neutral-900">Signature Cocktails</h2>
-        <p class="text-sm text-neutral-700 mt-1">Авторский тариф с уникальными сочетаниями</p>
-        <ul class="text-sm text-neutral-600 mt-2">
-          <li>• Редкие ингредиенты</li>
-          <li>• Эксклюзивные бокалы</li>
-          <li>• Идеально для презентаций</li>
-        </ul>
+      <div style="position:relative;padding:8px 10px 12px;flex:1;display:flex;align-items:flex-end">
+        <button id="prevBtn" class="btn-round hidden md:inline-flex" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:10">‹</button>
+        <div id="catalogItems" class="drinks-row" aria-live="polite"></div>
+        <button id="nextBtn" class="btn-round hidden md:inline-flex" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:10">›</button>
       </div>
     </div>
   </div>
-</div>
 
-<!-- Затемнение -->
-<div id="overlay" onclick="closeCatalog()" class="fixed inset-0 bg-black bg-opacity-30 hidden"></div>
+  <script>
+    /* ====== Data generation (same as раньше, с доп. полями) ====== */
+    const IMG = "https://res.cloudinary.com/glide/image/fetch/f_auto,w_900,c_limit/https://storage.googleapis.com/glide-prod.appspot.com/uploads-v2/TAPjb2GQS3bpIi2Qh1vu/pub/lsVkw6A2qYrMmByf9dlF.jpeg";
+    function rnd(){ return {
+      price:(Math.random()*15+5).toFixed(2)+' $',
+      abv:(Math.random()*15+5).toFixed(0)+'%',
+      volume:(Math.random()*150+150).toFixed(0)+' мл',
+      rating:(Math.random()*2+3).toFixed(1)+' ⭐',
+      calories: Math.round(Math.random()*150+100)+' ккал',
+      origin: ['RU','US','IT','MX','ES','JP'][Math.floor(Math.random()*6)],
+      prep: Math.round(Math.random()*15+3)+' мин'
+    } }
 
-<!-- Slide-in Bottom Sheet -->
-<div id="sheet" class="fixed inset-x-0 bottom-0 bg-white/20 backdrop-blur-lg rounded-t-3xl shadow-2xl hidden transition-transform transform translate-y-full max-h-[90%] flex flex-col">
-  <div class="w-12 h-1.5 bg-neutral-400/50 rounded-full mx-auto my-3"></div>
-  <div class="flex items-center justify-between px-6">
-    <h2 id="catalogTitle" class="text-2xl font-bold text-neutral-900"></h2>
-    <button onclick="closeCatalog()" class="text-neutral-600 hover:text-neutral-900 text-xl">✕</button>
-  </div>
+    const catalogs = {
+      1:{title:"Premium Cocktails", items:Array.from({length:12},(_,i)=>({name:`Premium Cocktail ${i+1}`,desc:"Изысканный вкус",img:IMG,...rnd()}))},
+      2:{title:"Classic Cocktails", items:Array.from({length:12},(_,i)=>({name:`Classic Cocktail ${i+1}`,desc:"Любимые напитки",img:IMG,...rnd()}))},
+      3:{title:"Signature Cocktails", items:Array.from({length:12},(_,i)=>({name:`Signature Cocktail ${i+1}`,desc:"Уникальные сочетания",img:IMG,...rnd()}))},
+      4:{title:"Exotic Cocktails", items:Array.from({length:12},(_,i)=>({name:`Exotic Cocktail ${i+1}`,desc:"Экзотические вкусы",img:IMG,...rnd()}))},
+      5:{title:"Seasonal Cocktails", items:Array.from({length:12},(_,i)=>({name:`Seasonal Cocktail ${i+1}`,desc:"Сезонные лимитированные",img:IMG,...rnd()}))},
+      6:{title:"VIP Cocktails", items:Array.from({length:12},(_,i)=>({name:`VIP Cocktail ${i+1}`,desc:"Для избранных",img:IMG,...rnd()}))},
+      7:{title:"Special Cocktails", items:Array.from({length:12},(_,i)=>({name:`Special Cocktail ${i+1}`,desc:"Редкие рецепты",img:IMG,...rnd()}))}
+    };
 
-  <!-- Карусель с кнопками -->
-  <div class="relative flex items-center px-6 py-4">
-    <button id="prevBtn" class="hidden md:flex absolute left-0 h-16 w-10 bg-white/20 backdrop-blur-md rounded-full items-center justify-center text-xl font-bold hover:bg-white/40 transition z-10">&lt;</button>
-    <div id="catalogItems" class="flex space-x-6 overflow-x-auto snap-x snap-mandatory scrollbar-hide"></div>
-    <button id="nextBtn" class="hidden md:flex absolute right-0 h-16 w-10 bg-white/20 backdrop-blur-md rounded-full items-center justify-center text-xl font-bold hover:bg-white/40 transition z-10">&gt;</button>
-  </div>
-</div>
+    /* helper - центрируем последнюю карточку, если в 2-колонной сетке она одна */
+    function adjustLast(){
+      const grid = document.getElementById('catalogGrid');
+      if (!grid) return;
+      const items = Array.from(grid.children);
+      items.forEach(it=>it.classList.remove('only-last'));
+      const cols = window.innerWidth >= 640 ? 2 : 1;
+      if (cols > 1 && items.length % cols === 1) items[items.length-1].classList.add('only-last');
+    }
+    window.addEventListener('resize', adjustLast);
+    window.addEventListener('load', adjustLast);
 
-<script>
-const placeholderImg = "https://res.cloudinary.com/glide/image/fetch/f_auto,w_500,c_limit/https%3A%2F%2Fstorage.googleapis.com%2Fglide-prod.appspot.com%2Fuploads-v2%2FTAPjb2GQS3bpIi2Qh1vu%2Fpub%2FlsVkw6A2qYrMmByf9dlF.jpeg";
+    /* slide-in logic (robust: toggle classes) */
+    const overlay = document.getElementById('overlay');
+    const sheet = document.getElementById('sheet');
+    const catalogItems = document.getElementById('catalogItems');
+    const catalogTitle = document.getElementById('catalogTitle');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const closeBtn = document.getElementById('closeBtn');
 
-function randomMetric() {
-  return {
-    price: (Math.random()*15 + 5).toFixed(2) + ' $',
-    abv: (Math.random()*15 + 5).toFixed(0) + '%',
-    volume: (Math.random()*150 + 150).toFixed(0) + ' мл',
-    rating: (Math.random()*2 + 3).toFixed(1) + ' ⭐'
-  }
-}
+    // bind click on catalog cards (delegation)
+    document.getElementById('catalogGrid').addEventListener('click', (e)=>{
+      const card = e.target.closest('.catalog-card');
+      if (!card) return;
+      const id = card.getAttribute('data-id') || card.dataset.id;
+      if (id) openCatalog(Number(id));
+    });
+    // allow Enter/Space to open when focused
+    document.getElementById('catalogGrid').addEventListener('keydown', (e)=>{
+      if ((e.key === 'Enter' || e.key === ' ') && e.target.closest('.catalog-card')){
+        e.preventDefault();
+        const id = e.target.closest('.catalog-card').dataset.id;
+        if (id) openCatalog(Number(id));
+      }
+    });
 
-const catalogs = {
-  1: { title: "Premium Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Premium Cocktail ${i+1}`, desc: "Изысканный вкус", img: placeholderImg, ...randomMetric() })) },
-  2: { title: "Classic Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Classic Cocktail ${i+1}`, desc: "Любимые напитки", img: placeholderImg, ...randomMetric() })) },
-  3: { title: "Signature Cocktails", items: Array.from({length:12}, (_,i)=>({ name: `Signature Cocktail ${i+1}`, desc: "Уникальные сочетания", img: placeholderImg, ...randomMetric() })) }
-};
+    function openCatalog(id){
+      const catalog = catalogs[id];
+      if (!catalog) return;
+      catalogTitle.textContent = catalog.title;
+      catalogItems.innerHTML = '';
 
-function openCatalog(id) {
-  const catalog = catalogs[id];
-  document.getElementById("catalogTitle").textContent = catalog.title;
-  const container = document.getElementById("catalogItems");
-  container.innerHTML = "";
+      catalog.items.forEach((it, idx)=>{
+        const card = document.createElement('div');
+        card.className = 'drink-card';
+        // image full cover; info overlay bottom
+        card.innerHTML = `
+          <img src="${it.img}" alt="${it.name}">
+          <div class="drink-info" role="region" aria-label="${it.name} info">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <h3 style="margin:0;font-size:16px;font-weight:700">${it.name}</h3>
+              <strong style="font-size:13px">${it.price}</strong>
+            </div>
+            <p style="margin:8px 0 0;color:#444;font-size:13px">${it.desc}</p>
+            <div class="more" style="margin-top:8px">
+              <p style="margin:6px 0 0">Крепость: ${it.abv} • Объем: ${it.volume}</p>
+              <p style="margin:6px 0 0">Калории: ${it.calories} • Происхождение: ${it.origin}</p>
+              <p style="margin:6px 0 0">Время: ${it.prep} • Рейтинг: ${it.rating}</p>
+            </div>
+          </div>
+        `;
+        // on mobile/touch: toggle expanded on tap
+        card.addEventListener('click', (ev)=>{
+          ev.stopPropagation(); // don't close overlay
+          card.classList.toggle('expanded');
+        }, { passive: true });
 
-  catalog.items.forEach(item => {
-    const div = document.createElement('div');
-    div.className = 'flex-none snap-center bg-white/20 backdrop-blur-md rounded-3xl shadow-lg overflow-hidden w-64 hover:scale-105 hover:shadow-2xl transition transform fade-slide';
-    div.innerHTML = `
-      <img src='${item.img}' class='w-full h-80 object-cover'/>
-      <div class='p-4'>
-        <h3 class='text-lg font-semibold mb-1 text-neutral-900'>${item.name}</h3>
-        <p class='text-sm text-neutral-700 mb-1'>${item.desc}</p>
-        <p class='text-sm text-neutral-500'>${item.price} • ${item.abv} • ${item.volume} • ${item.rating}</p>
-      </div>`;
-    container.appendChild(div);
-    setTimeout(()=>div.classList.add('active'), 50);
-  });
+        catalogItems.appendChild(card);
+        // stagger animation (adds .active class, CSS not defined for .active but kept for possible future)
+        setTimeout(()=>card.classList.add('active'), 40 + idx * 18);
+      });
 
-  document.getElementById("overlay").classList.remove("hidden");
-  const sheet = document.getElementById("sheet");
-  sheet.classList.remove("hidden", "translate-y-full");
-  sheet.classList.add("translate-y-0");
+      // show overlay & sheet (use classes)
+      overlay.classList.add('active');
+      sheet.classList.add('visible');
+      sheet.setAttribute('aria-hidden','false');
 
-  const scrollAmount = 320;
-  const prevBtn = document.getElementById("prevBtn");
-  const nextBtn = document.getElementById("nextBtn");
-  prevBtn.style.display = "flex";
-  nextBtn.style.display = "flex";
-  prevBtn.onclick = ()=>{ container.scrollBy({left: -scrollAmount, behavior:'smooth'}); }
-  nextBtn.onclick = ()=>{ container.scrollBy({left: scrollAmount, behavior:'smooth'}); }
-}
+      // show prev/next only on desktop
+      if (window.innerWidth >= 768){
+        prevBtn.classList.remove('hidden'); nextBtn.classList.remove('hidden');
+      } else {
+        prevBtn.classList.add('hidden'); nextBtn.classList.add('hidden');
+      }
 
-function closeCatalog() {
-  document.getElementById("overlay").classList.add("hidden");
-  const sheet = document.getElementById("sheet");
-  sheet.classList.add("translate-y-full");
-  setTimeout(() => sheet.classList.add("hidden"), 300);
-}
-</script>
+      // reset scroll
+      catalogItems.scrollLeft = 0;
+
+      // wire prev/next (stopPropagation so clicks don't bubble to overlay)
+      const cardEl = catalogItems.querySelector('.drink-card');
+      const gap = 12;
+      const cardW = cardEl ? Math.round(cardEl.getBoundingClientRect().width) : 320;
+      const step = cardW + gap;
+      prevBtn.onclick = (ev)=>{ ev.stopPropagation(); catalogItems.scrollBy({ left: -step, behavior: 'smooth' }); };
+      nextBtn.onclick = (ev)=>{ ev.stopPropagation(); catalogItems.scrollBy({ left: step, behavior: 'smooth' }); };
+
+      // prevent overlay close when interacting with catalogItems area
+      catalogItems.addEventListener('click', (e)=> e.stopPropagation());
+    }
+
+    function closeCatalog(){
+      sheet.classList.remove('visible');
+      overlay.classList.remove('active');
+      sheet.setAttribute('aria-hidden','true');
+      // clear items (optional)
+      setTimeout(()=> catalogItems.innerHTML = '', 320);
+    }
+
+    overlay.addEventListener('click', closeCatalog);
+    closeBtn.addEventListener('click', closeCatalog);
+  </script>
 </body>
 </html>
